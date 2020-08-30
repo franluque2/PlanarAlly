@@ -63,7 +63,10 @@
         "colors": "Colours",
         "version": "version",
         "confirm": "Confirm",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "insert_one_character": "Please insert at least one character",
+        "name_already_in_use": "This name is already in use!",
+        "varia": "Varia"
     },
     "auth": {
         "login": {
@@ -198,7 +201,9 @@
                     "delete_shapes": "Delete shapes",
                     "show_props": "Show properties",
                     "remove_marker": "Remove marker",
-                    "set_marker": "Set marker"
+                    "set_marker": "Set marker",
+                    "no_spawn_set_title": "Could not move shapes",
+                    "no_spawn_set_text": "The destination has no spawn locations configured, make sure to create at least one."
                 }
             },
             "settings": {
@@ -234,6 +239,9 @@
                     "unit_size_in_UNIT": "Unit Size (in {unit})",
                     "use_grid": "Use grid",
                     "size_unit": "Size Unit"
+                },
+                "VariaSettings": {
+                    "movePlayerOnTokenChange": "Move player(s) when a token they own changes location"
                 },
                 "location": {
                     "LocationAdminSettings": {
@@ -277,7 +285,10 @@
                 "defaultcontext": {
                     "bring_pl": "Bring players",
                     "create_basic_token": "Create basic token",
-                    "show_initiative": "Show initiative"
+                    "show_initiative": "Show initiative",
+                    "create_spawn_location": "Create spawn location",
+                    "new_spawn_question": "What should this spawn location be named?",
+                    "new_spawn_title": "Creating new spawn location"
                 },
                 "draw": {
                     "foreground_color": "Foreground colour",

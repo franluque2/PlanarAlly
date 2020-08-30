@@ -7,6 +7,38 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+-   spawn location tweaks
+    -   Multi spawn locations
+        -   When moving a shape to a new location that has multiple spawn locations, a box will appear to choose the desired spawn zone
+    -   Removal of spawn locations is now possible
+
+### Fixed
+
+-   Run docker container as non-root
+
+# [0.22.2] - 2020-08-28
+
+### Fixed
+
+-   Drawing on FOW layer blocking UI
+-   Badge toggle not working properly
+-   Group leader not properly set serverside on paste
+-   Server error on shape paste due to aura type change
+
+## [0.22.1] - 2020-08-27
+
+### Changed
+
+-   Spawn locations are no longer magically created
+    -   You can now (as a DM) explicitly create spawn tokens with the right click context menu
+    -   You can already create multiple spawn locations, but UI to choose between them will be for the next proper release
+
+### Fixed
+
+-   Server error when encountering broken spawn locations
+
 ## [0.22.0] - 2020-08-26
 
 ### Added

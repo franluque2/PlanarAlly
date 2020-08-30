@@ -19,13 +19,16 @@ import { Shape } from "@/game/shapes/shape";
 import { floorStore } from "../../layers/store";
 import { Floor } from "@/game/layers/floor";
 import { moveFloor, moveLayer } from "../../layers/utils";
-import { requestSpawnInfo } from "@/game/api/emits/location";
+import { requestSpawnInfo, sendLocationChange } from "@/game/api/emits/location";
 import { sendShapesMove } from "@/game/api/emits/shape/core";
+import SelectionBox from "@/core/components/modals/SelectionBox.vue";
+import { ServerAsset } from "@/game/comm/types/shapes";
 
 @Component({
     components: {
         ContextMenu,
         Prompt,
+        SelectionBox,
     },
     computed: {
         ...mapState("game", ["activeFloorIndex", "markers"]),
@@ -35,6 +38,7 @@ import { sendShapesMove } from "@/game/api/emits/shape/core";
 export default class ShapeContext extends Vue {
     $refs!: {
         prompt: InstanceType<typeof Prompt>;
+        selectionbox: InstanceType<typeof SelectionBox>;
     };
 
     visible = false;
@@ -107,39 +111,50 @@ export default class ShapeContext extends Vue {
     }
     async setLocation(newLocation: number): Promise<void> {
         const selection = this.getActiveLayer()!.getSelection();
-
-        const spawnLocations = (gameSettingsStore.locationOptions[newLocation]?.spawnLocations ?? []).length;
-        if (spawnLocations === 0) {
-            await (<Game>(
-                this.$parent.$parent.$parent
-            )).$refs.confirm.open(
-                "game.ui.selection.shapecontext.spawn_location_info",
-                "game.ui.selection.shapecontext.spawn_location_info_msg",
-                { showNo: false, yes: "Ok" },
-            );
-            this.close();
-            return;
-        }
-
         const spawnInfo = await requestSpawnInfo(newLocation);
-        if (spawnInfo.length !== spawnLocations) {
-            console.error("Spawn location info mismatch.");
-            this.close();
-            return;
+        let spawnLocation: ServerAsset;
+
+        switch (spawnInfo.length) {
+            case 0:
+                await (<Game>this.$parent.$parent.$parent).$refs.confirm.open(
+                    this.$t("game.ui.selection.shapecontext.no_spawn_set_title").toString(),
+                    this.$t("game.ui.selection.shapecontext.no_spawn_set_text").toString(),
+                    { showNo: false, yes: "Ok" },
+                );
+                this.close();
+                return;
+            case 1:
+                spawnLocation = spawnInfo[0];
+                break;
+            default: {
+                const choice = await this.$refs.selectionbox.open(
+                    "Choose the desired spawn location",
+                    spawnInfo.map(s => s.name),
+                );
+                const choiceShape = spawnInfo.find(s => s.name === choice);
+                if (choiceShape === undefined) return;
+                spawnLocation = choiceShape;
+                break;
+            }
         }
+
         const targetLocation = {
-            floor: spawnInfo[0].floor,
-            x: spawnInfo[0].x + spawnInfo[0].width / 2,
-            y: spawnInfo[0].y + spawnInfo[0].height / 2,
+            floor: spawnLocation.floor,
+            x: spawnLocation.x + spawnLocation.width / 2,
+            y: spawnLocation.y + spawnLocation.height / 2,
         };
-        // if (spawnLocations > 1) {
-        //     // todo
-        // }
 
         sendShapesMove({
             shapes: selection.map(s => s.uuid),
             target: { location: newLocation, ...targetLocation },
         });
+        if (gameSettingsStore.movePlayerOnTokenChange) {
+            const users: Set<string> = new Set();
+            for (const shape of selection) {
+                for (const owner of shape.owners) users.add(owner.user);
+            }
+            sendLocationChange({ location: newLocation, users: [...users] });
+        }
 
         this.close();
     }
@@ -221,6 +236,7 @@ export default class ShapeContext extends Vue {
         @close="close"
     >
         <Prompt ref="prompt"></Prompt>
+        <SelectionBox ref="selectionbox"></SelectionBox>
         <li v-if="getFloors().length > 1">
             {{ $t("common.floor") }}
             <ul>
